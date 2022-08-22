@@ -1,6 +1,6 @@
 # AES-GCM-Simple-Implementation
 
-This is a FIPS Compliant implementation of the AES-GCM 256. To use it, run the jar or the gradle wrapper, providing the arguments in the below format. 
+This is a FIPS Compliant implementation of the AES-GCM 256. To use it, run the jar or the gradle wrapper, providing the *\<arguments\>* in the below format. 
 
     ./gradlew run --args "<mode(enc|dec)> <file_path> <output_file_name>"
 
