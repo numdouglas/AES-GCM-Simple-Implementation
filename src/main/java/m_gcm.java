@@ -76,8 +76,6 @@ public class m_gcm {
 
         Scanner sc = new Scanner(System.in);
 
-        int i=sc.nextInt();
-
         char[] password = new char[]{};
         char[] password_confirmation = new char[]{};
         char[] iv_confirmation = new char[]{};

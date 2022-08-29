@@ -21,3 +21,7 @@ dependencies {
     implementation("org.bouncycastle:bc-fips:1.0.2.3")
     implementation("commons-io:commons-io:2.11.0")
 }
+
+tasks.withType<JavaExec>() {
+    standardInput = System.`in`
+}
