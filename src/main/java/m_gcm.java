@@ -22,14 +22,14 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class m_gcm {
-    private byte[] gcmEncrypt(final SecretKey secretKey, final byte[] iv, final byte[] plainText) throws GeneralSecurityException, UnsupportedEncodingException {
+    public static byte[] OnGcmEncrypt(final SecretKey secretKey, final byte[] iv, final byte[] plainText) throws GeneralSecurityException, UnsupportedEncodingException {
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BCFIPS");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
 
         return cipher.doFinal(plainText);
     }
 
-    private byte[] gcmDecrypt(final SecretKey secretKey, final AlgorithmParameterSpec gcmParameters, final byte[] cipherText)
+    public static byte[] OnGcmDecrypt(final SecretKey secretKey, final AlgorithmParameterSpec gcmParameters, final byte[] cipherText)
             throws GeneralSecurityException {
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BCFIPS");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameters);
@@ -37,26 +37,18 @@ public class m_gcm {
         return cipher.doFinal(cipherText);
     }
 
-    private byte[] readFileBytes(String path) throws IOException {
-        InputStream inputStream = null;
+    byte[] readFileBytes(String path) throws IOException {
         byte[] read_output_stream;
 
-        try {
-            inputStream = new FileInputStream(path);
-
-        } finally {
+        try (InputStream inputStream = new FileInputStream(path)) {
             read_output_stream = IOUtils.toByteArray(inputStream);
         }
+
         return read_output_stream;
     }
 
-    private void writeFileBytes(byte[] file_blob, File file_path) throws IOException {
-        final FileOutputStream fileOutputStream = new FileOutputStream(file_path);
-        fileOutputStream.write(file_blob);
-        fileOutputStream.close();
-    }
-
-    private byte[] charsAreUTF8(char[] arr) throws CharacterCodingException {
+    //Java uses utf-16, to allow support on more systems, we limit ourselves to utf-8
+    byte[] charsAreUTF8(char[] arr) throws CharacterCodingException {
         CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder()
                 .onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT);
@@ -66,82 +58,99 @@ public class m_gcm {
         return bytes;
     }
 
+    void writeFileBytes(byte[] file_blob, File file_path) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(file_path);
+        fileOutputStream.write(file_blob);
+        fileOutputStream.close();
+    }
 
     //main.jar <mode[enc|dec]> <file_path> <out_file_name>
     public static void main(String[] args) throws IOException, GeneralSecurityException {
+
         Security.addProvider(new BouncyCastleFipsProvider());
+
         m_gcm mM_gcm = new m_gcm();
+        final Scanner scanner = new Scanner(System.in);
 
-
-        final Scanner sc = new Scanner(System.in);
-
+        byte[] secret_k = new byte[]{};
+        byte[] plain_text = new byte[]{};
+        byte[] cipher_text = new byte[]{};
         char[] password = new char[]{};
         char[] password_confirmation = new char[]{};
         char[] iv_confirmation = new char[]{};
         char[] iv_chars = new char[]{};
+        byte[] salt = new byte[]{};
         byte[] iv = new byte[]{};
-        byte[] secret_k = new byte[]{};
-
-        byte[] plain_text = new byte[]{};
-        byte[] cipher_text = new byte[]{};
 
         try {
+            final String op_mode, file_path, output_file_name;
+            op_mode = args[0];
+
             System.out.println("Enter password");
-            password = sc.nextLine().toCharArray();
-            System.out.println("Confirm password");
-            password_confirmation = sc.nextLine().toCharArray();
+            password = scanner.nextLine().toCharArray();
+
+            if (op_mode.equals("enc")) {
+                System.out.println("Confirm password");
+                password_confirmation = scanner.nextLine().toCharArray();
+            }
+
             System.out.println("Enter iv");
             //halt converting to bytes till we're sure we have utf-8 string
-            iv_chars = sc.nextLine().toCharArray();
-            System.out.println("Confirm iv");
-            iv_confirmation = sc.nextLine().toCharArray();
-            sc.close();
+            iv_chars = scanner.nextLine().toCharArray();
 
-            final String op_mode = args[0];
-            final String file_path = args[1];
-            final String output_file_name = args[2];
+            if (op_mode.equals("enc")) {
+                System.out.println("Confirm iv");
+                iv_confirmation = scanner.nextLine().toCharArray();
+            }
+
+            scanner.close();
+
+            file_path = args[1];
+            output_file_name = args[2];
+
+            if (op_mode.equals("enc")) {
+                final int error_flag = Boolean.compare(Arrays.equals(password, password_confirmation),
+                        Arrays.equals(iv_chars, iv_confirmation));
+
+                if (error_flag < 0)
+                    throw new IOException("Passwords do not match");
+                else if (error_flag > 0) throw new IOException("Ivs do not match");
+            }
+
+            //check all console input is mappable to utf-8
+            mM_gcm.charsAreUTF8(password);
+            iv = mM_gcm.charsAreUTF8(iv_chars);
+
 
             final File input_file = Path.of(file_path).toFile();
 
             if (!input_file.exists()) {
                 throw new IOException("File does not exist");
             }
-
-            final int error_flag = Boolean.compare(Arrays.equals(password, password_confirmation),
-                    Arrays.equals(iv_chars, iv_confirmation));
-
-            //check all console input is mappable to utf-8
-            mM_gcm.charsAreUTF8(password);
-            iv = mM_gcm.charsAreUTF8(iv_chars);
-
-            if (error_flag < 0)
-                throw new IOException("Passwords do not match");
-            else if (error_flag > 0) throw new IOException("Ivs do not match");
-
-            final byte[] salt = new byte[]{2, 4, 5, 5, 3, 7, 0, 3, 1, 4, 2, 3, 5, 6, 3, 2};
+            salt = new byte[]{2, 4, 5, 5, 3, 7, 0, 3, 1, 4, 2, 3, 5, 6, 3, 2};
             final int iteration_count = 65536;
 
             final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WITHHMACSHA256", "BCFIPS");
 
             secret_k = secretKeyFactory.generateSecret(new PBEKeySpec(password, salt, iteration_count, 256)).getEncoded();
+
             final SecretKey sec_key = new SecretKeySpec(secret_k, "AES");
 
 
             if (op_mode.equals("enc")) {
 
                 plain_text = mM_gcm.readFileBytes(file_path);
-                cipher_text = mM_gcm.gcmEncrypt(sec_key, iv, plain_text);
+                cipher_text = OnGcmEncrypt(sec_key, iv, plain_text);
                 //make path platform delimiter agnostic
                 mM_gcm.writeFileBytes(cipher_text, Path.of(input_file.getParent(), output_file_name).toFile());
 
             } else if (op_mode.equals("dec")) {
 
                 cipher_text = mM_gcm.readFileBytes(file_path);
-                plain_text = mM_gcm.gcmDecrypt(sec_key, new GCMParameterSpec(128, iv), cipher_text);
+                plain_text = OnGcmDecrypt(sec_key, new GCMParameterSpec(128, iv), cipher_text);
                 mM_gcm.writeFileBytes(plain_text, Path.of(input_file.getParent(), output_file_name).toFile());
 
             }
-
         } finally {
             mM_gcm = null;
             Arrays.fill(iv, (byte) 0);
@@ -151,6 +160,7 @@ public class m_gcm {
             Arrays.fill(password, (char) 0);
             Arrays.fill(iv_chars, (char) 0);
             Arrays.fill(password_confirmation, (char) 0);
+            Arrays.fill(salt, (byte) 0);
             Arrays.fill(iv_confirmation, (char) 0);
 
             System.gc();
