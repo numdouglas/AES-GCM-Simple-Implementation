@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
 Main-Class: m_gcm
+Class-Path: ext_libs/bc-fips-1.0.2.3.jar ext_libs/commons-io-2.11.0.jar
 
