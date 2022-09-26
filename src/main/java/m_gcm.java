@@ -158,7 +158,7 @@ public class m_gcm {
             Arrays.fill(salt, (byte) 0);
             Arrays.fill(iv_confirmation, (char) 0);
 
-            console.flush();
+            console.writer().close();
 
             System.gc();
         }
