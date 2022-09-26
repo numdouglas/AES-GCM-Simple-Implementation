@@ -100,8 +100,6 @@ public class m_gcm {
                 iv_confirmation = console.readPassword("Confirm iv");//.toCharArray();
             }
 
-            console.flush();
-
             file_path = args[1];
             output_file_name = args[2];
 
@@ -159,6 +157,8 @@ public class m_gcm {
             Arrays.fill(password_confirmation, (char) 0);
             Arrays.fill(salt, (byte) 0);
             Arrays.fill(iv_confirmation, (char) 0);
+
+            console.flush();
 
             System.gc();
         }
