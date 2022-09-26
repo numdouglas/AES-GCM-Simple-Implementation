@@ -19,7 +19,6 @@ import java.security.GeneralSecurityException;
 import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
-import java.util.Scanner;
 
 public class m_gcm {
     public static byte[] OnGcmEncrypt(final SecretKey secretKey, final byte[] iv, final byte[] plainText) throws GeneralSecurityException, UnsupportedEncodingException {
@@ -70,7 +69,8 @@ public class m_gcm {
         Security.addProvider(new BouncyCastleFipsProvider());
 
         m_gcm mM_gcm = new m_gcm();
-        final Scanner scanner = new Scanner(System.in);
+
+        final Console console = System.console();
 
         byte[] secret_k = new byte[]{};
         byte[] plain_text = new byte[]{};
@@ -86,24 +86,21 @@ public class m_gcm {
             final String op_mode, file_path, output_file_name;
             op_mode = args[0];
 
-            System.out.println("Enter password");
-            password = scanner.nextLine().toCharArray();
+            password = console.readPassword("Enter password");//scanner.nextLine().toCharArray();
 
             if (op_mode.equals("enc")) {
-                System.out.println("Confirm password");
-                password_confirmation = scanner.nextLine().toCharArray();
+                password_confirmation = console.readPassword("Confirm password");//.toCharArray();
             }
 
-            System.out.println("Enter iv");
+            //System.out.println("Enter iv");
             //halt converting to bytes till we're sure we have utf-8 string
-            iv_chars = scanner.nextLine().toCharArray();
+            iv_chars = console.readPassword("Enter iv");//.toCharArray();
 
             if (op_mode.equals("enc")) {
-                System.out.println("Confirm iv");
-                iv_confirmation = scanner.nextLine().toCharArray();
+                iv_confirmation = console.readPassword("Confirm iv");//.toCharArray();
             }
 
-            scanner.close();
+            console.flush();
 
             file_path = args[1];
             output_file_name = args[2];
