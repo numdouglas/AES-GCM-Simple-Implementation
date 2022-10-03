@@ -104,10 +104,13 @@ public class m_gcm {
             output_file_name = args[2];
 
             if (op_mode.equals("enc")) {
-                if (!Arrays.equals(password, password_confirmation))
-                    throw new IOException("Passwords do not match");
-                else if (!Arrays.equals(iv_chars, iv_confirmation))
-                    throw new IOException("Ivs do not match");
+                final int match_flag=(Arrays.equals(password, password_confirmation)?1:-1)+
+                        (Arrays.equals(iv_chars, iv_confirmation)?1:0);
+                switch (match_flag){
+                    case -1:throw new IOException("Passwords and Ivs do not match");
+                    case 0:throw new IOException("Passwords do not match");
+                    case 1:throw new IOException("Ivs do not match");
+                }
             }
 
             //check all console input is mappable to utf-8
