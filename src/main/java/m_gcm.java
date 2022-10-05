@@ -16,24 +16,48 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.security.Security;
-import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 
 public class m_gcm {
-    public static byte[] OnGcmEncrypt(final SecretKey secretKey, final byte[] iv, final byte[] plainText) throws GeneralSecurityException, UnsupportedEncodingException {
+    public static byte[] OnGcmEncrypt(final SecretKey secretKey, final byte[] iv, final byte[] plainText) throws GeneralSecurityException {
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BCFIPS");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
 
         return cipher.doFinal(plainText);
     }
 
-    public static byte[] OnGcmDecrypt(final SecretKey secretKey, final AlgorithmParameterSpec gcmParameters, final byte[] cipherText)
+    public static byte[] OnGcmDecrypt(final char[] password, final byte[] cipherText)
             throws GeneralSecurityException {
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BCFIPS");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameters);
+        final int iteration_count = 65536;
 
-        return cipher.doFinal(cipherText);
+        final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WITHHMACSHA256", "BCFIPS");
+
+        byte[] salt = new byte[256];
+        byte[] iv = new byte[256];
+        byte[] raw_cipher = new byte[cipherText.length - (salt.length + iv.length)];
+
+        ByteBuffer iv_buffer = ByteBuffer.wrap(salt);
+        iv_buffer.put(cipherText, 0, salt.length);
+        salt = iv_buffer.array();
+        iv_buffer.clear();
+
+        iv_buffer = ByteBuffer.wrap(iv);
+        iv_buffer.put(cipherText, salt.length, iv.length);
+        iv = iv_buffer.array();
+        iv_buffer.clear();
+        iv_buffer = ByteBuffer.wrap(raw_cipher);
+        iv_buffer.put(cipherText, salt.length + iv.length, raw_cipher.length);
+        raw_cipher = iv_buffer.array();
+        iv_buffer.clear();
+
+        byte[] secret_k = secretKeyFactory.generateSecret(new PBEKeySpec(password, salt, iteration_count, 256)).getEncoded();
+        final SecretKey sec_key = new SecretKeySpec(secret_k, "AES");
+
+        cipher.init(Cipher.DECRYPT_MODE, sec_key, new GCMParameterSpec(128, iv));
+        return cipher.doFinal(raw_cipher);
     }
 
     byte[] readFileBytes(String path) throws IOException {
@@ -57,9 +81,21 @@ public class m_gcm {
         return bytes;
     }
 
-    void writeFileBytes(byte[] file_blob, File file_path) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(file_path);
-        fileOutputStream.write(file_blob);
+    void writeFileBytes(File file_path, byte[]... salt_iv_file_blob) throws IOException {
+        final FileOutputStream fileOutputStream = new FileOutputStream(file_path);
+        if (salt_iv_file_blob.length == 3) {
+            byte[] finalOutputBytes =
+                    new byte[salt_iv_file_blob[0].length + salt_iv_file_blob[1].length + salt_iv_file_blob[2].length];
+
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(finalOutputBytes);
+            finalOutputBytes = byteBuffer.put(salt_iv_file_blob[0])
+                    .put(salt_iv_file_blob[1]).put(salt_iv_file_blob[2]).array();
+            byteBuffer.clear();
+
+            fileOutputStream.write(finalOutputBytes);
+        } else {
+            fileOutputStream.write(salt_iv_file_blob[0]);
+        }
         fileOutputStream.close();
     }
 
@@ -77,10 +113,8 @@ public class m_gcm {
         byte[] cipher_text = new byte[]{};
         char[] password = new char[]{};
         char[] password_confirmation = new char[]{};
-        char[] iv_confirmation = new char[]{};
-        char[] iv_chars = new char[]{};
-        byte[] salt = new byte[]{};
-        byte[] iv = new byte[]{};
+        byte[] salt = new byte[256];
+        byte[] iv = new byte[256];
 
         try {
             final String op_mode, file_path, output_file_name;
@@ -88,64 +122,37 @@ public class m_gcm {
 
             password = console.readPassword("Enter password");//scanner.nextLine().toCharArray();
 
-            if (op_mode.equals("enc")) {
-                password_confirmation = console.readPassword("Confirm password");//.toCharArray();
-            }
-
-            //System.out.println("Enter iv");
-            //halt converting to bytes till we're sure we have utf-8 string
-            iv_chars = console.readPassword("Enter iv");//.toCharArray();
-
-            if (op_mode.equals("enc")) {
-                iv_confirmation = console.readPassword("Confirm iv");//.toCharArray();
-            }
-
             file_path = args[1];
             output_file_name = args[2];
 
-            if (op_mode.equals("enc")) {
-                final int match_flag=(Arrays.equals(password, password_confirmation)?1:-1)+
-                        (Arrays.equals(iv_chars, iv_confirmation)?1:0);
-                switch (match_flag){
-                    case -1:throw new IOException("Passwords and Ivs do not match");
-                    case 0:throw new IOException("Passwords do not match");
-                    case 1:throw new IOException("Ivs do not match");
-                }
-            }
-
             //check all console input is mappable to utf-8
             mM_gcm.charsAreUTF8(password);
-            iv = mM_gcm.charsAreUTF8(iv_chars);
-
 
             final File input_file = Path.of(file_path).toFile();
 
-            if (!input_file.exists()) {
-                throw new IOException("File does not exist");
-            }
-            salt = new byte[]{2, 4, 5, 5, 3, 7, 0, 3, 1, 4, 2, 3, 5, 6, 3, 2};
-            final int iteration_count = 65536;
+            if (op_mode.equals("dec")) {
+                cipher_text = mM_gcm.readFileBytes(file_path);
+                plain_text = OnGcmDecrypt(password, cipher_text);
+                mM_gcm.writeFileBytes(Path.of(input_file.getParent(), output_file_name).toFile(), plain_text);
 
-            final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WITHHMACSHA256", "BCFIPS");
+            } else if (op_mode.equals("enc")) {
+                password_confirmation = console.readPassword("Confirm password");//.toCharArray();
+                if (!Arrays.equals(password, password_confirmation)) {
+                    throw new IOException("Passwords do not match");
+                }
 
-            secret_k = secretKeyFactory.generateSecret(new PBEKeySpec(password, salt, iteration_count, 256)).getEncoded();
+                new SecureRandom().nextBytes(iv);
+                new SecureRandom().nextBytes(salt);
 
-            final SecretKey sec_key = new SecretKeySpec(secret_k, "AES");
-
-
-            if (op_mode.equals("enc")) {
+                final SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WITHHMACSHA256", "BCFIPS");
+                final int iteration_count = 65536;
+                secret_k = secretKeyFactory.generateSecret(new PBEKeySpec(password, salt, iteration_count, 256)).getEncoded();
+                final SecretKey sec_key = new SecretKeySpec(secret_k, "AES");
 
                 plain_text = mM_gcm.readFileBytes(file_path);
                 cipher_text = OnGcmEncrypt(sec_key, iv, plain_text);
                 //make path platform delimiter agnostic
-                mM_gcm.writeFileBytes(cipher_text, Path.of(input_file.getParent(), output_file_name).toFile());
-
-            } else if (op_mode.equals("dec")) {
-
-                cipher_text = mM_gcm.readFileBytes(file_path);
-                plain_text = OnGcmDecrypt(sec_key, new GCMParameterSpec(128, iv), cipher_text);
-                mM_gcm.writeFileBytes(plain_text, Path.of(input_file.getParent(), output_file_name).toFile());
-
+                mM_gcm.writeFileBytes(Path.of(input_file.getParent(), output_file_name).toFile(), salt, iv, cipher_text);
             }
         } finally {
             mM_gcm = null;
@@ -154,10 +161,8 @@ public class m_gcm {
             Arrays.fill(plain_text, (byte) 0);
             Arrays.fill(cipher_text, (byte) 0);
             Arrays.fill(password, (char) 0);
-            Arrays.fill(iv_chars, (char) 0);
             Arrays.fill(password_confirmation, (char) 0);
             Arrays.fill(salt, (byte) 0);
-            Arrays.fill(iv_confirmation, (char) 0);
 
             console.writer().close();
 
