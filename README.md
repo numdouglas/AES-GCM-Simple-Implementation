@@ -4,7 +4,7 @@ This is a FIPS Compliant implementation of the AES-GCM 256. To use it, run the j
 
     ./gradlew run --args "<mode(enc|dec)> <file_path> <output_file_name>"
 
-And Enter a password on prompt.
+And enter a password on prompt.
 
 For example, 
 
