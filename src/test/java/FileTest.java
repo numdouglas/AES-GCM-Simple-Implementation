@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.HexFormat;
+import java.util.regex.Matcher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,5 +69,16 @@ public class FileTest {
     @Test
     public void checkHex() {
         System.out.println(HexFormat.of().formatHex("s5sol".getBytes()));
+    }
+
+    @Test
+    public void checkTildeSupport() {
+        File file = Path.of("~/videos/mfile.txt"
+                        .replaceFirst("^~", Matcher.quoteReplacement(System.getProperty("user.home"))))
+                .toFile();
+
+        System.out.println(file.getPath());
+        assertTrue(file.isFile());
+
     }
 }

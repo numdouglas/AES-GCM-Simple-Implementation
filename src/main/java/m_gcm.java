@@ -19,6 +19,7 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.regex.Matcher;
 
 public class m_gcm {
     public static byte[] OnGcmEncrypt(final SecretKey secretKey, final byte[] iv, final byte[] plainText) throws GeneralSecurityException {
@@ -122,7 +123,8 @@ public class m_gcm {
 
             password = console.readPassword("Enter password");//scanner.nextLine().toCharArray();
 
-            file_path = args[1];
+            file_path = args[1].replaceFirst("^~",
+                    Matcher.quoteReplacement(System.getProperty("user.home")));
             output_file_name = args[2];
 
             //check all console input is mappable to utf-8
