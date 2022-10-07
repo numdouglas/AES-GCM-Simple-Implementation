@@ -7,7 +7,7 @@ To use it, run the jar (in build/libs) or the gradle wrapper, providing the *\<a
 
     ./gradlew run --args "<mode(enc|dec)> <file_path> <output_file_name>"
 
-And enter a password on prompt.
+And provide a password on prompt.
 
 For example, 
 
