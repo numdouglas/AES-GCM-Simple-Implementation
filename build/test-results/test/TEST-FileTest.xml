@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="FileTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2022-10-06T07:46:56" hostname="DESKTOP-1RKP0KH" time="0.053">
+<testsuite name="FileTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2022-10-09T19:49:34" hostname="DESKTOP-5ER82MA" time="0.076">
   <properties/>
-  <testcase name="checkTildeSupport()" classname="FileTest" time="0.053"/>
-  <system-out><![CDATA[C:\Users\Douglas\videos\mfile.txt
+  <testcase name="testPathNullPtr()" classname="FileTest" time="0.076"/>
+  <system-out><![CDATA[C:\Users\Douglas Mbogo\IdeaProjects\aes_gcm_impl
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

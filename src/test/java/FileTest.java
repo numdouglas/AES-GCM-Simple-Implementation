@@ -1,16 +1,17 @@
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.HexFormat;
 import java.util.regex.Matcher;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FileTest {
     ClassLoader mClassLoader = getClass().getClassLoader();
@@ -23,6 +24,7 @@ public class FileTest {
                 31heahdjajdh22enwdbsbdse2ea
                 """.getBytes();
         byte[] sampleIv = HexFormat.of().formatHex("hello".getBytes()).getBytes();
+
 
         FileOutputStream fileOutputStream = new FileOutputStream(file);
 
@@ -80,5 +82,14 @@ public class FileTest {
         System.out.println(file.getPath());
         assertTrue(file.isFile());
 
+    }
+
+    @Test
+    public void testPathNullPtr() {
+        File file = Path.of("mfile.txt"
+                        .replaceFirst("^~", Matcher.quoteReplacement(System.getProperty("user.home"))))
+                .toFile();
+
+        System.out.println(Path.of(file.getAbsoluteFile().getParent()));
     }
 }

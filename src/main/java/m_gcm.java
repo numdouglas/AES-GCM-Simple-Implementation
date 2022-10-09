@@ -135,7 +135,8 @@ public class m_gcm {
             if (op_mode.equals("dec")) {
                 cipher_text = mM_gcm.readFileBytes(file_path);
                 plain_text = OnGcmDecrypt(password, cipher_text);
-                mM_gcm.writeFileBytes(Path.of(input_file.getParent(), output_file_name).toFile(), plain_text);
+                mM_gcm.writeFileBytes(Path.of(input_file.getAbsoluteFile().getParent(), output_file_name).toFile(),
+                        plain_text);
 
             } else if (op_mode.equals("enc")) {
                 password_confirmation = console.readPassword("Confirm password");//.toCharArray();
@@ -154,7 +155,7 @@ public class m_gcm {
                 plain_text = mM_gcm.readFileBytes(file_path);
                 cipher_text = OnGcmEncrypt(sec_key, iv, plain_text);
                 //make path platform delimiter agnostic
-                mM_gcm.writeFileBytes(Path.of(input_file.getParent(), output_file_name).toFile(), salt, iv, cipher_text);
+                mM_gcm.writeFileBytes(Path.of(input_file.getAbsoluteFile().getParent(), output_file_name).toFile(), salt, iv, cipher_text);
             }
         } finally {
             mM_gcm = null;
