@@ -103,7 +103,7 @@ public class m_gcm {
     //main.jar <mode[enc|dec]> <file_path> <out_file_name>
     public static void main(String[] args) throws IOException, GeneralSecurityException {
 
-        Security.addProvider(new BouncyCastleFipsProvider());
+        Security.addProvider(new org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider());
 
         m_gcm mM_gcm = new m_gcm();
 
