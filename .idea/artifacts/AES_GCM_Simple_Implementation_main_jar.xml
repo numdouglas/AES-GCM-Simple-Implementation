@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact name="AES-GCM-Simple-Implementation.main:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/AES_GCM_Simple_Implementation_main_jar</output-path>
+    <root id="root">
+      <element id="archive" name="AES-GCM-Simple-Implementation.main.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+        </element>
+        <element id="module-output" name="AES-GCM-Simple-Implementation.main" />
+      </element>
+      <element id="library" level="project" name="Gradle: org.bouncycastle:bc-fips:1.0.2.3" />
+      <element id="library" level="project" name="Gradle: commons-io:commons-io:2.11.0" />
+    </root>
+  </artifact>
+</component>
