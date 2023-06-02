@@ -11,7 +11,7 @@ And provide a password on prompt.
 
 For example, 
 
-> java -jar enc ~/documents/my_doc.txt
+> java -jar aes_gcm_impl.jar enc ~/documents/my_doc.txt
 > my_enc_doc.enc
 
 Will output the arbitrarily named encrypted variant, *my_enc_doc*, in the same directory *my_doc.txt* is located.
