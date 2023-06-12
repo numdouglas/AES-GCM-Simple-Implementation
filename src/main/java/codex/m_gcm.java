@@ -133,13 +133,13 @@ public class m_gcm {
 
             final File input_file = Path.of(file_path).toFile();
 
-            if (op_mode.equals("dec")) {
+            if (op_mode.equalsIgnoreCase("dec")) {
                 cipher_text = mM_gcm.readFileBytes(file_path);
                 plain_text = OnGcmDecrypt(password, cipher_text);
                 mM_gcm.writeFileBytes(Path.of(input_file.getAbsoluteFile().getParent(), output_file_name).toFile(),
                         plain_text);
 
-            } else if (op_mode.equals("enc")) {
+            } else if (op_mode.equalsIgnoreCase("enc")) {
                 password_confirmation = console.readPassword("Confirm password");//.toCharArray();
                 if (!Arrays.equals(password, password_confirmation)) {
                     throw new IOException("Passwords do not match");
