@@ -5,7 +5,7 @@ GCM mode of AES fulfills the 3 components of the CIA triad, Confidentiality, Ava
 
 To use it, run the jar (in ./out) or the gradle wrapper, providing the *\<arguments\>* in the below format,
 
-    java -jar aes_gcm_impl.jar <mode(enc|dec)> <file_path> <output_file_name>
+    java -jar aes_gcm_impl.jar <mode *(enc|dec)*> <file_path *string*> <output_file_name *string*>
 
 And provide a password on prompt.
 
