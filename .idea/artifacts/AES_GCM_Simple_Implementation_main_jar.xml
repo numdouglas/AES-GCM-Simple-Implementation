@@ -1,15 +1,13 @@
 <component name="ArtifactManager">
-  <artifact name="AES-GCM-Simple-Implementation.main:jar">
+  <artifact type="jar" name="AES-GCM-Simple-Implementation.main:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/AES_GCM_Simple_Implementation_main_jar</output-path>
-    <root id="root">
-      <element id="archive" name="AES-GCM-Simple-Implementation.main.jar">
-        <element id="directory" name="META-INF">
-          <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
-        </element>
-        <element id="module-output" name="AES-GCM-Simple-Implementation.main" />
+    <root id="archive" name="AES-GCM-Simple-Implementation.main.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
       </element>
-      <element id="library" level="project" name="Gradle: org.bouncycastle:bc-fips:1.0.2.3" />
-      <element id="library" level="project" name="Gradle: commons-io:commons-io:2.11.0" />
+      <element id="module-output" name="AES-GCM-Simple-Implementation.main" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-io/commons-io/2.11.0/a2503f302b11ebde7ebc3df41daebe0e4eea3689/commons-io-2.11.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.bouncycastle/bc-fips/1.0.2.3/da62b32cb72591f5b4d322e6ab0ce7de3247b534/bc-fips-1.0.2.3.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

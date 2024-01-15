@@ -142,7 +142,7 @@ public class m_gcm {
             } else if (op_mode.equalsIgnoreCase("enc")) {
                 password_confirmation = console.readPassword("Confirm password");//.toCharArray();
                 if (!Arrays.equals(password, password_confirmation)) {
-                    throw new IOException("Passwords do not match");
+                    System.out.println("Passwords do not match");
                 }
 
                 new SecureRandom().nextBytes(iv);
